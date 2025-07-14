@@ -1,0 +1,133 @@
+*************************** 
+https://www.youtube.com/watch?v=jdfNnNccDt0
+Till 40:23
+Tab navigation, tabBar stylize, tabBar icons are done
+****************************
+
+1. Why Tabs is not styling by StyleSheet?
+
+2. Icons - Ionicons from expo-router
+
+3. Icon size={size} color={color}. Why?
+
+*************************** 
+https://www.youtube.com/watch?v=jdfNnNccDt0
+From 40:23 till 53:28
+Dark and Light mode
+****************************
+
+!!!!! TypeScript interfeisu lietošana ReactNative
+!!!!! Context API lietošana ReactNative
+!!!!! Provider lietošana ReactNative
+!!!!! useContext lietošana ReactNative
+!!!!! useState lietošana ReactNative
+!!!!! useEffect lietošana ReactNative
+!!!!! asyncStorage lietošana ReactNative
+
+
+1. Local Storage - lai atcereetos kādu tēmu izvēlējās lietotājs.
+
+2. To nodrošina speciāls hook(s)
+
+3. Local storage vietā izmantojam async-storage
+
+npm i @react-native-async-storage/async-storage
+
+4. jāizveido themeProvider (fails ar 132 rindām koda tīrā React ar Typescript un nekā no ReactNative, izņemot async-storage pakotni). 
+- importējam useState, useEffect un asyncStorage.
+- Providerim ir useState - kas seko kāds reims izvēlēts
+- useEffect - lai iegaumētu lietotāja izvēli pēdējā sistēmas palaišanas reizē.
+- tad tiek izsaukta metode toggleDarkMode - kas ļauj pārslēgt tēmas un atjauno asyncStorage noglabātos datus (Dark modē izmantojam agrāk nodefinētās tumšās krāsas, Ligh Modē - gaišās).
+- Lai to nodrošinātu izveidojam hooku useTheme, kurš izsauc context.
+- const useTheme = () => {
+    const context = useContext(ThemeContext);
+    if (context === undefined) {
+        throw new Error("useTheme must be used within a ThemeProvider");
+    }
+
+    return context;
+};
+
+5. Tagad pamata _layoutā (ne tab layoutā) viss kods jāietin (wrap), lai varētu izmantot Light un Dark modes. 
+
+6. Ietinam visu ThemeProviderī (ko importējam nevis no react-native, bet no ../hooks/useTheme)
+
+import { Stack } from "expo-router";
+import { ThemeProvider } from "../hooks/useTheme";
+import React from "react";
+
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <Stack screenOptions={{
+        headerShown: false,
+      }}>
+        <Stack.Screen name="(tabs)" />
+      </Stack>
+    </ThemeProvider>
+  );
+}
+
+7. Tagad pielabojam (tabs) screenus,lai izmantotu themes nodefinētās krāsas (color={color} etc.).
+....
+import { useTheme } from '../../hooks/useTheme';
+
+  <Tabs screenOptions={{
+            tabBarActiveTintColor: colors.primary,
+            tabBarInactiveTintColor: colors.textMuted,
+            tabBarStyle: {
+                backgroundColor: colors.surface,
+                borderTopWidth: 1,
+                borderTopColor: colors.border,
+.......
+
+app lieto LightMode, jo hookaa useTheme useState sākumstāvoklis ir false, bet     const colors = isDarkMode ? darkColors : lightColors;
+tātad sākumā sanāk light Mode.
+
+8. Pievienojam tēmu pārslēgšanas toggle pogu (pārbaudam - tabBar maina tēmu. Pārstartējot app, tēma ir tā,kas bija pirms app aizvēršanas jo stāvooklis saglabājas async storage (local - iekārtā kurā instalēta app)) - importējam hooku, pievienojam no hooka toggleDarkMode metodi un uzrakstam uzrakstu "Toggle Mode"
+
+import React from 'react'
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
+import useTheme from '../../hooks/useTheme'
+
+export default function Index() {
+    const { toggleDarkMode } = useTheme()
+
+    return (
+        <View style={styles.container}>
+            <Text>Index</Text>
+            <TouchableOpacity onPress={toggleDarkMode}>
+                <Text>Toggle Mode</Text>
+            </TouchableOpacity>
+        </View>
+    )
+}
+
+Tagad tēmu pārslēgšana darbojas, to vēlāk realizēsim ar atsevišku pārslēgšanas komponentu setting screenā.
+
+*************************** 
+https://www.youtube.com/watch?v=jdfNnNccDt0
+From 53:28 till .....
+Add DataBase
+****************************
+
+1. izmantojam backendam Convex (līdz 20 projektiem - bez maksas)  (var Firebase vai Supabase)- the backend AI  (DB, autentifikācija, fona uzdevumi un citas funkcijas)
+
+2. Projektu Convexā var izveidot convex admin paneli vai no IDE termināļa:
+- vienā terminālī palaists npx expo
+- otrā terminālī -   npm i convex
+tad -   npx convex dev
+
+3. convex mapē izveido schema.ts failu. tad tajā izveido db tabulu sheemu.
+
+import { defineSchema, defineTable } from "convex/server";
+import { v } from "convex/values";
+
+const schema = defineSchema({
+    todos: defineTable({
+        text: v.string(),
+        isCompleted: v.boolean(),
+    }),
+});
+
+export default schema;
