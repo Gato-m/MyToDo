@@ -107,8 +107,8 @@ Tagad tēmu pārslēgšana darbojas, to vēlāk realizēsim ar atsevišku pārsl
 
 *************************** 
 https://www.youtube.com/watch?v=jdfNnNccDt0
-From 53:28 till .....
-Add DataBase
+From 53:28 till 1:10:00
+Add DataBase and configure schema and functions
 ****************************
 
 1. izmantojam backendam Convex (līdz 20 projektiem - bez maksas)  (var Firebase vai Supabase)- the backend AI  (DB, autentifikācija, fona uzdevumi un citas funkcijas)
@@ -249,11 +249,75 @@ export const clearAllTodos = mutation({
     }
 })
 
+*************************** 
+https://www.youtube.com/watch?v=jdfNnNccDt0
+From 1:10:00 - 1:14:27
+Add functions to app
+****************************
+
+1. Importējam app/_layout.tsx failā ConvexProvider un ConverReactClient. un ietinam visu layoutu ieksh convex provider, lai visa app buutu saistiita ar convex. Pilns kods: 
+
+import { ConvexProvider, ConvexReactClient } from "convex/react";
+import { Stack } from "expo-router";
+import React from "react";
+import { ThemeProvider } from "../hooks/useTheme";
+
+const convex = new ConvexReactClient(process.env.EXPO_PUBLIC_CONVEX_URL!, {
+  unsavedChangesWarning: false,
+});
+
+export default function RootLayout() {
+  return (
+    <ConvexProvider client={convex}>
+      <ThemeProvider>
+        <Stack screenOptions={{
+          headerShown: false,
+        }}>
+          <Stack.Screen name="(tabs)" />
+        </Stack>
+      </ThemeProvider>
+    </ConvexProvider>
+  );
+}
+
+2. Pievienojam datus no DB uz index screenu tab/index.tsx failā.
+
+import { useQuery } from 'convex/react'
+import { api } from '../../convex/_generated/api'
 
 
+export default function Index() {
+    const { toggleDarkMode } = useTheme()
+
+    const todos = useQuery(api.todo.getTodos)
+    console.log(todos)
+
+    return (.......
+
+// ieguustam tukshu masiivu jo nav veel neviens todo izveidots.
+
+3. Pievienojam nepieciešaaas mutācija, kuras pēc tam izsaulsim ar touchableopacity :
+
+    const todos = useQuery(api.todo.getTodos)
+    console.log(todos)
+
+    const addTodo = useMutation(api.todo.addTodo)
+
+    const clearAllTodos = useMutation(api.todo.clearAllTodos)
+
+    // un izsauc tās at touchableopacity:
+
+   <TouchableOpacity onPress={() => addTodo({ text: "New Todo" })}>
+                <Text>Add Todo</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => clearAllTodos()}>
+                <Text>Clear All Todos</Text>
+            </TouchableOpacity>
 
 
-
-
-
+*************************** 
+https://www.youtube.com/watch?v=jdfNnNccDt0
+From 1:14:27
+Setting up styles & Header component
+****************************
 
