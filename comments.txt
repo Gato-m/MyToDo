@@ -255,7 +255,7 @@ From 1:10:00 - 1:14:27
 Add functions to app
 ****************************
 
-1. Importējam app/_layout.tsx failā ConvexProvider un ConverReactClient. un ietinam visu layoutu ieksh convex provider, lai visa app buutu saistiita ar convex. Pilns kods: 
+1. Importējam app/_layout.tsx failā ConvexProvider un ConverReactClient. un ietinam visu layoutu ieksh convex provider, lai visa app būtu saistīta ar convex. Pilns kods: 
 
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { Stack } from "expo-router";
@@ -321,3 +321,47 @@ From 1:14:27
 Setting up styles & Header component
 ****************************
 
+1. ja mums ir divas tēmas -gaišā un tumšā, tad krāsas butu logiski ieviest vadoties no tēmas. Mēs varan const styles papildināt ar backgroundColor: colors.background, color: colors.text, bet varam to visu "wrapot" funkcijā.
+
+2. izdzēšam no indeksa visu const styles,  un tā vietā uzrakstām funkciju - piem:
+lai to "ieviestu" izveidojam:
+const styles = createStyles(colors)
+
+viss kods: 
+
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import useTheme, { ColorScheme } from '../../hooks/useTheme';
+
+export default function Index() {
+    const { toggleDarkMode, colors } = useTheme()
+
+    const styles = createStyles(colors);
+
+    return (
+        <View style={styles.container}>
+            <Text style={styles.text}>Index</Text>
+            <TouchableOpacity onPress={toggleDarkMode}>
+                <Text style={styles.text}>Toggle Mode</Text>
+            </TouchableOpacity>
+        </View>
+    )
+}
+
+const createStyles = (colors: ColorScheme) => {
+    return StyleSheet.create({
+        container: {
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 10,
+            backgroundColor: colors.bg,
+        },
+        text: {
+            color: colors.text,
+        }
+    });
+};
+
+
+1:17:24

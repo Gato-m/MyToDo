@@ -1,39 +1,33 @@
-import { useMutation, useQuery } from 'convex/react'
-import React from 'react'
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import { api } from '../../convex/_generated/api'
-import useTheme from '../../hooks/useTheme'
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import useTheme, { ColorScheme } from '../../hooks/useTheme';
 
 export default function Index() {
-    const { toggleDarkMode } = useTheme()
+    const { toggleDarkMode, colors } = useTheme()
 
-    const todos = useQuery(api.todo.getTodos)
-    console.log(todos)
-
-    const addTodo = useMutation(api.todo.addTodo)
-
-    const clearAllTodos = useMutation(api.todo.clearAllTodos)
+    const styles = createStyles(colors);
 
     return (
         <View style={styles.container}>
-            <Text>Index</Text>
+            <Text style={styles.text}>Index</Text>
             <TouchableOpacity onPress={toggleDarkMode}>
-                <Text>Toggle Mode</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => addTodo({ text: "New Todo" })}>
-                <Text>Add Todo</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => clearAllTodos()}>
-                <Text>Clear All Todos</Text>
+                <Text style={styles.text}>Toggle Mode</Text>
             </TouchableOpacity>
         </View>
     )
 }
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-})
+const createStyles = (colors: ColorScheme) => {
+    return StyleSheet.create({
+        container: {
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 10,
+            backgroundColor: colors.bg,
+        },
+        text: {
+            color: colors.text,
+        }
+    });
+};
