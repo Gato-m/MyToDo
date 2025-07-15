@@ -3,6 +3,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import { StatusBar, Text, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
+import Header from '../../components/header';
 import useTheme from '../../hooks/useTheme';
 
 export default function Index() {
@@ -15,7 +16,7 @@ export default function Index() {
             <StatusBar barStyle={colors.statusBarStyle} />
             <LinearGradient colors={colors.gradients.background} style={homeStyles.container}>
                 <SafeAreaView style={homeStyles.safeArea}>
-                    <Text>Index</Text>
+                    <Header />
                     <TouchableOpacity onPress={toggleDarkMode}>
                         <Text>Toggle Mode</Text>
                     </TouchableOpacity>
