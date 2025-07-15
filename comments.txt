@@ -321,11 +321,10 @@ From 1:14:27
 Setting up styles & Header component
 ****************************
 
-1. ja mums ir divas tēmas -gaišā un tumšā, tad krāsas butu logiski ieviest vadoties no tēmas. Mēs varan const styles papildināt ar backgroundColor: colors.background, color: colors.text, bet varam to visu "wrapot" funkcijā.
+1. ja mums ir divas tēmas -gaišā un tumšā, tad krāsas butu logiski ieviest vadoties no tēmas. Mēs varam const styles papildināt ar backgroundColor: colors.background, color: colors.text, bet varam to visu "wrapot" funkcijā.
 
 2. izdzēšam no indeksa visu const styles,  un tā vietā uzrakstām funkciju - piem:
-lai to "ieviestu" izveidojam:
-const styles = createStyles(colors)
+lai to "ieviestu" izveidojam: const styles = createStyles(colors) un tajā "wrapojam" veco const styles.
 
 viss kods: 
 
@@ -348,7 +347,7 @@ export default function Index() {
     )
 }
 
-const createStyles = (colors: ColorScheme) => {
+const createStyles = (colors: ColorScheme) => {      // colorScheme from hooks folder
     return StyleSheet.create({
         container: {
             flex: 1,
@@ -363,5 +362,23 @@ const createStyles = (colors: ColorScheme) => {
     });
 };
 
+// izveidojam assets/styles/home.styles.ts - tajā būs funkcijā wrapoti stili un failu settings.styles.ts - tas praktiski ir appa ui. Tagad indx failā iepriekš izveidotu const styles = createStyles(colors) varam dzēst pilnībā, tā vairs nav vajadzīga un krāsu ieviešanu index failā pielabojam uz - const homeStyles = createHomeStyles(colors), ari importējam to no import { createHomeStyles } from '@/assets/styles/home.styles';
+un stilus return selcijā nomainam no styles uz homeStyles.
 
-1:17:24
+3. Lai teksti "neaizbrauc" lietojam SafeAreaView parastā View vietā. importējam no - import {SafeAreaView} from "react-native-safe-area-context" , arī saSafeAreaView  stilu nomainam uz homeStyles.safeArea - jo tas ir definēts iepriekš izveidotajos ui failos ka atsevišķs stils.
+
+4. lai stilizētu katra todo fonu izmantojam self-closed componentu -  Expo Linear Gradient
+npx expo install expo-linear-gradient
+
+- hookos useTheme.tsx mums ir gradientu krāsas definētas.
+
+5. Pielietojam linear gradientu - ietinam index safeAreaView ieksh <LinearGradient colors={colors.gradients.background} style={homeStyles.container}> un importjam to - import { LinearGradient } from 'expo-linear-gradient'; krāsas gradientā var mainīt hookos teemas krāsās definētajās gradient krāsās.
+
+6. Tagad headeris. lai tas mainiitos - gaish tumshajā tēmā un tumsh gaišajā tēmā - izmanto statusBar komponentu. To ievieto pirms gradienta un visu return kodu iewrapo rect fragmentaa <></>
+<StatusBar barStyle={colors.statusBarStyle} />  //dinamiski maina krāsu
+import { StatusBar } from 'react-native';
+
+
+
+
+
