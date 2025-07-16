@@ -317,7 +317,7 @@ export default function Index() {
 
 *************************** 
 https://www.youtube.com/watch?v=jdfNnNccDt0
-From 1:14:27
+From 1:14:27 - 1:34:20
 Setting up styles & Header component
 ****************************
 
@@ -402,7 +402,6 @@ import { Text, View } from "react-native";
 
 const Header = () => {
     const { colors } = useTheme();
-
     const homeStyles = createHomeStyles(colors);
 
     const todos = useQuery(api.todo.getTodos);
@@ -443,14 +442,76 @@ const Header = () => {
 
 export default Header;
 
+*************************** 
+https://www.youtube.com/watch?v=jdfNnNccDt0
+From 1:34:20 - 1:43:45
+Add todos component <TodoInput />
+****************************
+
+1. nodrošinam stilizāciju atbilstoši tēmai. Iegūstam colores no custom hook useTheme, stilus no metodes createHomeStyles(colors) kas nosaka home screen stilus.
+
+- importējam;
+import { createHomeStyles } from '@/assets/styles/home.styles'
+import useTheme from '@/hooks/useTheme'
+
+un kodā:
+
+export default function TodoInput() {
+    const { colors } = useTheme();
+    const homeStyles = createHomeStyles(colors);
+    ...
+
+2. Komponentā izmantosim mutāciju.
+vispirms iegustam esošo stāvokli, tad mutācija, kas ļauj radīt jaunus todo (importējam mutāciju un api no convex):
+
+const [newTodo, setNewTodo] = useState('')
+const addTodo = useMutation(api.todo.addTodo)
+
+3. izveidojam lietotaaja ui, un radam funkciju handleAddTodo, kas izsauks funkciju addTodo, kad ir ievadits todo un nospiests enter:
+
+const handleAddTodo = async() => {}
+
+tad pievienojam TextInput:
+     <TextInput
+                    style={homeStyles.input}
+                    placeholder="Add new todo"
+                    value={newTodo}
+                    onChangeText={setNewTodo}
+                    onSubmitEditing={handleAddTodo}
+                    multiline
+                    placeholderTextColor={colors.textMuted}
+                />
+
+     - onSubmitEditing={handleAddTodo} - nospiests enter  - nosūta mutāciju un pievieno jaunu todo un ar (onChangeText={setNewTodo}) atjauno useState - setNewTodo('')           
+
+//////   !!!!!!!!  Cmd + K - izsauc ekrāna klaviaturu)
+
+4. Pagaidām Enter nospiešana uz klaviatūras izveido jaunu rindkopu iekšh TextInput.
+Tas jālabo - aizvācam multiline opciju un Enter strādā nosūtot mutāciju.
+
+5. Pievienojam pogu "Add" kas nosūta mutāciju un pievieno jaunu todo. 
+pogas fonā - linear gradient, teksta vietā icona, abi maina savu stilu atkarība no newTodo.trim() - ja ir ievadits todo un nospiests enter, tad pogas fon ir primary, ja nav ievadits todo, tad pogas fon ir muted.
+
+                <TouchableOpacity onPress={handleAddTodo} activeOpacity={0.8} disabled={!newTodo.trim()}>
+                <LinearGradient colors={newTodo.trim() ? colors.gradients.primary : colors.gradients.muted} style={[homeStyles.addButton, !newTodo.trim() ? homeStyles.addButtonDisabled ]}>
+                    <Ionicons name="add" size={24} color="#fff" />
+                </LinearGradient>
+                </TouchableOpacity>
 
 
+6. Nodrošinām pārbaudi ievadot jaunu todo - ja ir ievadīts jauns todo - tad to pievienojam, ja ne - tad funkcija handleAddTodo nestrādas, pievienojam arī trim() - lai noņemtu tukšas rakstzīmes, lai neaizsūt tikai tukšumu mutācijā.
+Tāpēc arī nospiešot pievienot jaunu todo neizsaucam pa tiešo mutācijas funkciju addTodo, bet wrapojam to citā funkcijā handleAddTodo. Tas ļauj veikt ievades pārbaudi - try catch blokā.
+App nav jaatjauno lai redzētu vai todo pievienojies, to nodrošina funlcija  const todos = useQuery(api.todo.getTodos) no componenta header - convex caur socket atsūta nepieciešamos datus - tas strādā real time from the box. 
 
-1:31:07
+*************************** 
+https://www.youtube.com/watch?v=jdfNnNccDt0
+From 1:43:50
+Show Todos at home screen
+****************************
 
+1. Var importēt api, izmantot GET pieprasījumu (const todos = useQuery(api.todo.getTodos) un saņemt visus todo no db un tad tos parādīt home screenā. Tad izmantojam 
+{todos?.map((todo) => <Text key={todo._id}>{todo.text}</Text>)}
+un iegūstam visu todo sarakstu.
 
-
-
-
-
+2. Efektīvāks šādā gadījumā ir FlatList komponents.
 

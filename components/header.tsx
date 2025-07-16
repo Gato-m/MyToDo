@@ -8,7 +8,6 @@ import { Text, View } from "react-native";
 
 const Header = () => {
     const { colors } = useTheme();
-
     const homeStyles = createHomeStyles(colors);
 
     const todos = useQuery(api.todo.getTodos);
