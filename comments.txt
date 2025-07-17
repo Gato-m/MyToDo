@@ -719,3 +719,129 @@ https://www.youtube.com/watch?v=jdfNnNccDt0
 From 2:01:20 ........
 Edit and Delete todos functionality
 ****************************
+
+1. Delete todos. 
+
+- izveidojam jaunu api mutāciju un saglabājam mainīgajā deleteTodo:
+        const deleteTodo = useMutation(api.todo.deleteTodo);
+
+- un izsaucam to ar handleDeleteTodo funkciju:
+// vēl viena fiška - pirms dzēšanas parādās alert logs ar komandu (Delete Todo) un divām izvēlēm - dzēst vai nedzēst šo todo. katra izvēle - cancel iun delete ir atsevišķs objekts masīvā kas ir iekļauts alert logā.
+
+
+    const handleDeleteTodo = async (id: Id<"todos">) => {
+
+        Alert.alert("Delete Todo", "Are you sure you want to delete this todo?", [
+            {
+                text: "Cancel",
+                onPress: () => console.log("Cancel Pressed"),
+                style: "cancel",
+            },
+            {
+                text: "Delete",
+                style: "destructive",
+                onPress: () => deleteTodo({ id }),
+            },
+        ]);
+    };
+
+2. Edit todo. Attiecīgā todo wrapperī funkcija handleEditTodo mainīsi interfeisa daļu - parādīsies editējams inputs un divas pogas - save (atceļ iepriekšējo stāvokli) un cancel (atceļ darbību). Tātad vajadzīgi divi stāvokļi - viens todo rediģēšanas id un otrs - rediģējamā todo teksts. lai atjaunotu tikai to, kas nepieciešams nepieciešams izmantot redigēšanas id.
+
+3. Tagad varam dzēst ieprikš lietoto toggleTodo metodi un izmantot useState hooku.
+
+const updateTodo = useMutation(api.todo.updateTodo);
+
+const [editingId, setEditingId] = useState<Id<"todos"> | null>(null);
+const [editText, setEditText] = useState<string>("");
+
+// tagad funkcijas: handleEditTodo atrod labojamā todo id un tekstu, const handleSaveEdit - ļauj labot todo, const handleCancelEdit - atceļ rediģēšanu :
+
+ const handleEditTodo = (todo: Todo) => {
+        setEditingId(todo._id)
+        setEditText(todo.text)
+    }
+    const handleSaveEdit = async () => {
+        if (editingId) {
+            try {
+                await updateTodo({ id: editingId, text: editText.trim })
+                setEditingId(null)
+                setEditText("")
+            } catch (error) {
+                console.log("Error updating todo", error)
+                Alert.alert("Error", "Failed to update todo")
+            }
+        }
+        const handleCancelEdit = () => {
+            setEditingId(null)
+            setEditText("")
+        }
+    }
+
+4. tagad var izsaukt tikko izveidotās funkcija lietotaaja interfeisā, bet mums nav šī stāvokļa. Tāpēc atrodam katra todo wrappera teksta konteineru ( kurā gatavojamies veikt izmaiņas )
+
+                    <View style={homeStyles.todoTextContainer}>
+                        <Text
+                            style={[homeStyles.todoText,
+                            item.isCompleted && {
+                                textDecorationLine: "line-through",
+                                color: colors.textMuted,
+                                opacity: 0.6,
+                            },]} >
+                            {item.text}</Text>
+                    </View>
+
+Tā vietā ievietojam: 
+
+{isEditing ? () : (
+                    <View style={homeStyles.todoTextContainer}>
+                        <Text
+                            style={[homeStyles.todoText,
+                            item.isCompleted && {
+                                textDecorationLine: "line-through",
+                                color: colors.textMuted,
+                                opacity: 0.6,
+                            },]} >
+                            {item.text}</Text>
+                    </View>
+)}
+
+// isEditing funkcija mums nav pieejama. Tā bus pieejama pie nosacījuma, ja isEditing = editingId === item._id
+
+5. ievietojam to pie todoItem renderinga:
+
+    const renderTodoItem = ({ item }: { item: Todo }) => {
+        const isEditing = editingId === item._id
+        return ( .....
+
+6. Tagad vēl 30 koda rindiņas pie isEditing....
+
+- vispirms tukšh konteiners (kurā notiks redigēšana)
+
+    <View style={homeStyles.todoTextContainer}>
+    </View>
+
+- tad tajā ievietojam teksta rediģēsanas lauku:
+
+    <View style={homeStyles.todoTextContainer}>
+    <TextInput 
+        style={homeStyles.todoInput}
+        value={editText} 
+        onChangeText={setEditText} 
+        autoFocus
+        multiline
+        placeholder="Edit todo ..."
+        placeholderTextColor={colors.textMuted}
+        onSubmitEditing={handleSaveEdit}
+    />
+    </View>
+
+- tad jāpievieno editēšanas funkcija handleEditTodo editēšanas pogai, lai to nospieot nomainitos interfeiss todo wraperī un útu redigēšanas iespēja:
+
+<TouchableOpacity onPress={() => handleEditTodo(item)} activeOpacity={0.8}>
+                            <LinearGradient colors={colors.gradients.warning} style={homeStyles.actionButton}>
+                                <Ionicons name="pencil" size={14} color="#fff" />
+                            </LinearGradient>
+                        </TouchableOpacity>
+
+
+2:12:05

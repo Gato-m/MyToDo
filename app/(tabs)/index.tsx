@@ -7,7 +7,7 @@ import { Doc, Id } from '@/convex/_generated/dataModel';
 import { Ionicons } from '@expo/vector-icons';
 import { useMutation, useQuery } from 'convex/react';
 import { LinearGradient } from 'expo-linear-gradient';
-import React from 'react';
+import React, { useState } from 'react';
 import { Alert, FlatList, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import Header from '../../components/header';
@@ -24,6 +24,11 @@ export default function Index() {
     console.log(todos)
 
     const toggleTodo = useMutation(api.todo.toggleTodo);
+    const deleteTodo = useMutation(api.todo.deleteTodo);
+    const updateTodo = useMutation(api.todo.updateTodo);
+
+    const [editingId, setEditingId] = useState<Id<"todos"> | null>(null);
+    const [editText, setEditText] = useState<string>("");
 
     const isLoading = todos === undefined
 
@@ -38,8 +43,46 @@ export default function Index() {
         }
     };
 
+    const handleDeleteTodo = async (id: Id<"todos">) => {
+
+        Alert.alert("Delete Todo", "Are you sure you want to delete this todo?", [
+            {
+                text: "Cancel",
+                onPress: () => console.log("Cancel Pressed"),
+                style: "cancel",
+            },
+            {
+                text: "Delete",
+                style: "destructive",
+                onPress: () => deleteTodo({ id }),
+            },
+        ]);
+    };
+
+    const handleEditTodo = (todo: Todo) => {
+        setEditingId(todo._id)
+        setEditText(todo.text)
+    }
+    const handleSaveEdit = async () => {
+        if (editingId) {
+            try {
+                await updateTodo({ id: editingId, text: editText.trim })
+                setEditingId(null)
+                setEditText("")
+            } catch (error) {
+                console.log("Error updating todo", error)
+                Alert.alert("Error", "Failed to update todo")
+            }
+        }
+        const handleCancelEdit = () => {
+            setEditingId(null)
+            setEditText("")
+        }
+    }
+
 
     const renderTodoItem = ({ item }: { item: Todo }) => {
+        const isEditing = editingId === item._id
         return (
             <View style={homeStyles.todoItemWrapper}>
                 <LinearGradient colors={colors.gradients.surface}
@@ -58,6 +101,7 @@ export default function Index() {
                             {item.isCompleted && <Ionicons name="checkmark" size={24} color="white" />}
                         </LinearGradient>
                     </TouchableOpacity>
+
                     <View style={homeStyles.todoTextContainer}>
                         <Text
                             style={[homeStyles.todoText,
