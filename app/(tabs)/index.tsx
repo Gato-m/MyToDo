@@ -10,11 +10,12 @@ import Header from '../../components/header';
 import useTheme from '../../hooks/useTheme';
 
 export default function Index() {
-    const { toggleDarkMode, colors } = useTheme()
+    const { colors } = useTheme()
 
     const homeStyles = createHomeStyles(colors);
 
     const todos = useQuery(api.todo.getTodos)
+    console.log(todos)
 
     return (
         <>
