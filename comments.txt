@@ -505,7 +505,7 @@ App nav jaatjauno lai redzētu vai todo pievienojies, to nodrošina funlcija  co
 
 *************************** 
 https://www.youtube.com/watch?v=jdfNnNccDt0
-From 1:43:50
+From 1:43:50 - 2:01:20
 Show Todos at home screen as FlatList
 ****************************
 
@@ -636,4 +636,86 @@ const renderTodoItem = ({ item }: { item: Todo }) => {
     }
 
 
+7. veidojam funkciju handleToggleTodo - kas izsauc mutāciju updateTodo un pievieno todo id un ja todo ir pabeigts - tad pievieno true, ja nav pabeigts - tad pievieno false
 
+    const handleToggleTodo = async (id: Id<"todos">) => {.....
+
+// var jau id tipu norādīt kā stringu, bet
+lai typescript nelamātos, mums vajag importēt Id no convex:
+import { Id } from "@/convex/_generated/dataModel";
+
+pirms pārslēgt todo stāvokli nosakām, ka ja todo ir pabeigts - tad pievieno true, ja nav pabeigts - tad pievieno false (tas jau ir noteikts convex db ar funkciju toggleTodo). Tāpēc lietojam mutāciju kā api - tas atcels todo esošo stāvokli. Tad funkcijā catch blokā ieliekampazinojumu, ja neizdevās pārslēgt esošo stāvokli.
+
+    const toggleTodo = useMutation(api.todo.toggleTodo);
+
+    const handleToggleTodo = async (id: Id<"todos">) => {
+        try {
+            await toggleTodo({ id });
+        } catch (error) {
+            console.log("Error toggling todo", error);
+            Alert.alert("Error", "Failed to toggle todo");
+        }
+    };
+
+8. Noformējam katra todo teksta stilu - ja todo ir pabeigts - tad teksts ir line-through, ja nav pabeigts - tad teksts ir normals. Tas viss ieksh atsevishkja View containera:
+
+    <View style={homeStyles.todoTextContainer}>
+                        <Text
+                            style={[homeStyles.todoText,
+                            item.isCompleted && {
+                                textDecorationLine: "line-through",
+                                color: colors.textMuted,
+                                opacity: 0.6,
+                            },]} >
+                            {item.text}</Text>
+                    </View>
+
+9,. tagad katram todo texta blokam jāpievieno divas pogas - edit un delete.
+
+<View style={homeStyles.todoActions}>
+                <TouchableOpacity onPress={() => handleEditTodo(item)} activeOpacity={0.8}>
+                  <LinearGradient colors={colors.gradients.warning} style={homeStyles.actionButton}>
+                    <Ionicons name="pencil" size={14} color="#fff" />
+                  </LinearGradient>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => handleDeleteTodo(item._id)} activeOpacity={0.8}>
+                  <LinearGradient colors={colors.gradients.danger} style={homeStyles.actionButton}>
+                    <Ionicons name="trash" size={14} color="#fff" />
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+
+10. Vel vienanianse - kas notiek, ja todo masīvs bus tukšs. Tad var izmantot 
+ - ListEmptyComponent={<EmptyState />}
+
+izveidojam EmptyState komponentu: 
+
+import { createHomeStyles } from "@/assets/styles/home.styles";
+import useTheme from "@/hooks/useTheme";
+import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { Text, View } from "react-native";
+
+const EmptyState = () => {
+  const { colors } = useTheme();
+
+  const homeStyles = createHomeStyles(colors);
+
+  return (
+    <View style={homeStyles.emptyContainer}>
+      <LinearGradient colors={colors.gradients.empty} style={homeStyles.emptyIconContainer}>
+        <Ionicons name="clipboard-outline" size={60} color={colors.textMuted} />
+      </LinearGradient>
+      <Text style={homeStyles.emptyText}>No todos yet!</Text>
+      <Text style={homeStyles.emptySubtext}>Add your first todo above to get started</Text>
+    </View>
+  );
+};
+export default EmptyState;
+
+
+*************************** 
+https://www.youtube.com/watch?v=jdfNnNccDt0
+From 2:01:20 ........
+Edit and Delete todos functionality
+****************************

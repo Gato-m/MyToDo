@@ -1,18 +1,19 @@
 import { createHomeStyles } from '@/assets/styles/home.styles';
+import EmptyState from '@/components/EmptyState';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import TodoInput from '@/components/todoInput';
 import { api } from '@/convex/_generated/api';
-import { Doc } from '@/convex/_generated/dataModel';
+import { Doc, Id } from '@/convex/_generated/dataModel';
 import { Ionicons } from '@expo/vector-icons';
-import { useQuery } from 'convex/react';
+import { useMutation, useQuery } from 'convex/react';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
-import { FlatList, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, FlatList, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from "react-native-safe-area-context";
 import Header from '../../components/header';
 import useTheme from '../../hooks/useTheme';
 
-type Todo = Doc<todos>
+type Todo = Doc<todos>;
 
 export default function Index() {
     const { colors } = useTheme()
@@ -22,9 +23,21 @@ export default function Index() {
     const todos = useQuery(api.todo.getTodos)
     console.log(todos)
 
+    const toggleTodo = useMutation(api.todo.toggleTodo);
+
     const isLoading = todos === undefined
 
     if (isLoading) return <LoadingSpinner />
+
+    const handleToggleTodo = async (id: Id<"todos">) => {
+        try {
+            await toggleTodo({ id });
+        } catch (error) {
+            console.log("Error toggling todo", error);
+            Alert.alert("Error", "Failed to toggle todo");
+        }
+    };
+
 
     const renderTodoItem = ({ item }: { item: Todo }) => {
         return (
@@ -37,7 +50,7 @@ export default function Index() {
                     <TouchableOpacity
                         style={homeStyles.checkbox}
                         activeOpacity={0.7}
-                        onPress={() => { }}>
+                        onPress={() => handleToggleTodo(item._id)}>
                         <LinearGradient
                             colors={item.isCompleted ? colors.gradients.success : colors.gradients.muted}
                             style={[homeStyles.checkboxInner, { borderColor: item.isCompleted ? "transparent" : colors.border }]}
@@ -45,7 +58,30 @@ export default function Index() {
                             {item.isCompleted && <Ionicons name="checkmark" size={24} color="white" />}
                         </LinearGradient>
                     </TouchableOpacity>
-                    <Text style={homeStyles.todoText}>{item.text}</Text>
+                    <View style={homeStyles.todoTextContainer}>
+                        <Text
+                            style={[homeStyles.todoText,
+                            item.isCompleted && {
+                                textDecorationLine: "line-through",
+                                color: colors.textMuted,
+                                opacity: 0.6,
+                            },]} >
+                            {item.text}</Text>
+                    </View>
+
+                    <View style={homeStyles.todoActions}>
+                        <TouchableOpacity onPress={() => handleEditTodo(item)} activeOpacity={0.8}>
+                            <LinearGradient colors={colors.gradients.warning} style={homeStyles.actionButton}>
+                                <Ionicons name="pencil" size={14} color="#fff" />
+                            </LinearGradient>
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => handleDeleteTodo(item._id)} activeOpacity={0.8}>
+                            <LinearGradient colors={colors.gradients.danger} style={homeStyles.actionButton}>
+                                <Ionicons name="trash" size={14} color="#fff" />
+                            </LinearGradient>
+                        </TouchableOpacity>
+                    </View>
+
                 </LinearGradient >
             </View >
         )
@@ -66,6 +102,7 @@ export default function Index() {
                         style={homeStyles.todoList}
                         contentContainerStyle={homeStyles.todoListContent}
                         showsVerticalScrollIndicator={false}
+                        ListEmptyComponent={<EmptyState />}
                     />
                 </SafeAreaView>
             </LinearGradient>
