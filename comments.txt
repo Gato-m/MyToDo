@@ -506,12 +506,134 @@ App nav jaatjauno lai redzētu vai todo pievienojies, to nodrošina funlcija  co
 *************************** 
 https://www.youtube.com/watch?v=jdfNnNccDt0
 From 1:43:50
-Show Todos at home screen
+Show Todos at home screen as FlatList
 ****************************
 
 1. Var importēt api, izmantot GET pieprasījumu (const todos = useQuery(api.todo.getTodos) un saņemt visus todo no db un tad tos parādīt home screenā. Tad izmantojam 
 {todos?.map((todo) => <Text key={todo._id}>{todo.text}</Text>)}
 un iegūstam visu todo sarakstu.
 
-2. Efektīvāks šādā gadījumā ir FlatList komponents.
+2. Efektīvāks šādā gadījumā ir FlatList komponents. jo map gadījumā ielādējot screenu tiek renderēti visi simts todo, arī tie, kas ir "aiz kadra" , flatlist gadījumā tiek renderēti tikai tie kas redzami ekrānā. parējie tiek renderēti pie scrolla... tas ir efektīvāk. Ja zināms ka saraksts neliels - var izmantot arī map, ja nav - flatlist.
+
+3. Ja nezinām cik garš ir saraksts un cik ātri tas ielādēsies ir jēga pievienot ielādes komponentu. Ja datu ielāde no convex ir procesā un nav pabeigta - consolē rāda undefined - tātad atrodamies isLoading stāvoklī, pretējā gadījumā - false.
+
+const isLoading = todos === undefined
+
+- izveidojam komponentu LoadingSpinner:
+
+import { createHomeStyles } from "@/assets/styles/home.styles";
+import useTheme from "@/hooks/useTheme";
+import { LinearGradient } from "expo-linear-gradient";
+import { ActivityIndicator, Text, View } from "react-native";
+
+const LoadingSpinner = () => {
+    const { colors } = useTheme();
+
+    const homeStyles = createHomeStyles(colors);
+
+    return (
+        <LinearGradient colors={colors.gradients.background} style={homeStyles.container}>
+            <View style={homeStyles.loadingContainer}>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text style={homeStyles.loadingText}>Loading your todos...</Text>
+            </View>
+        </LinearGradient>
+    );
+};
+
+export default LoadingSpinner;
+
+
+- tad ieimportējam to index failā un ievietojam kodā. varam pārbaudīt, ja to "ieslēdzam" kodu :
+    if (isLoading) return <LoadingSpinner />
+aizvietojam ar 
+    if (true) return <LoadingSpinner />
+
+ 4. pārejam pie FlatList.
+ pirmais parametrs - datu masīvs
+ otrais - funkcija kas renderē katru todo. jārenderē tieši elements (item) nevis todo.
+
+ renderItem={({ item }) => <Text key={item._id}>{item.text}</Text>}
+
+  - tagad šo funkcijas kodu var ievietot jaunizveidotajāfunkcijā renderTodoItem, kurā izmantojam importētā dokumenta datu tipu Todo kas nāk no Convex:
+
+// type Todo = {
+//     _id: string;
+//     text: string;
+//     isCompleted: boolean;
+// }
+
+to rakstam kā: 
+import { Doc } from '@/convex/_generated/dataModel';
+
+type Todo = Doc<todos>
+
+// tā var iegūt datu tipu no Convex
+// tagad funkcija datu attēlošanai FlatListā:
+
+const renderTodoItem = ({ item }: (item: Todo)) => {
+    return (
+        <View style={homeStyles.todoItem}>
+            <Text style={homeStyles.todoText}>{item.text}</Text>
+        </View>
+    )
+}
+
+viss FlatList. key - katra todo identifikators, style - todo elementa stils, containerStyle - todo kontainera stils:
+
+                    <FlatList
+                        data={todos}
+                        renderItem={renderTodoItem}
+                        keyExtractor={(item) => item._id}
+                        style={homeStyles.todoList}
+                        contentContainerStyle={homeStyles.todoListContent}
+                        showsVerticalScrollIndicator={false}
+                    />
+
+5.  Katra todo elementa stils ir todoItemWrapper un todoItem. todoItemWrapper ir linear gradient, todoItem ir todo elementa stils. todoText ir todo elementa teksts. Ja todo wrappera gradientu gribam pagriezt par 45 grādiem jāsaprot ideja:
+
+0/0 --------- 1    // x ass
+    |       |
+    |       |
+    |       |
+1   --------- 1/1
+    y ass
+
+gradients 45 grādu leņķī:
+
+<LinearGradient colors={colors.gradients.surface} 
+    style={homeStyles.todoItem}
+    start={{ x: 0, y: 0 }}
+    end={{ x: 1, y: 1 }}
+    >
+</LinearGradient>
+
+6. Tatad kopā katra todo wrapperis ar 45 grādu gradientu un apaļu pogu, kurā chekot vai todo ir pabeigts un ja ir pabeigts - tad pogas krāsa ir success, ja nav pabeigts - tad pogas krāsa ir muted un, ja pabeigts - tad checked ikona ir visible. Pilns kods:
+
+const renderTodoItem = ({ item }: { item: Todo }) => {
+        return (
+            <View style={homeStyles.todoItemWrapper}>
+                <LinearGradient colors={colors.gradients.surface}
+                    style={homeStyles.todoItem}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                >
+                    <TouchableOpacity
+                        style={homeStyles.checkbox}
+                        activeOpacity={0.7}
+                        onPress={() => { }}>
+                        <LinearGradient
+                            colors={item.isCompleted ? colors.gradients.success : colors.gradients.muted}
+                            style={[homeStyles.checkboxInner, { borderColor: item.isCompleted ? "transparent" : colors.border }]}
+                        >
+                            {item.isCompleted && <Ionicons name="checkmark" size={24} color="white" />}
+                        </LinearGradient>
+                    </TouchableOpacity>
+                    <Text style={homeStyles.todoText}>{item.text}</Text>
+                </LinearGradient >
+            </View >
+        )
+    }
+
+
 
