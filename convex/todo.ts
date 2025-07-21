@@ -61,18 +61,11 @@ export const updateTodo = mutation({
 
 // reset app btn funkcija (visi todos tiek dzēsti)
 
-export const clearAllTodos = mutation({
-    handler: async (ctx) => {
-        const todos = await ctx.db.query("todos").collect();
-
-
-        //Delete all todos
-        for (const todo of todos) {
-            await ctx.db.delete(todo._id);
-        }
-
-        return { deleteCount: todos.length };
+export const clearAllTodos = mutation(async ({ db }) => {
+    const todos = await db.query("todos").collect();
+    for (const todo of todos) {
+        await db.delete(todo._id);
     }
-})
-
+    return { deletedCount: todos.length };
+});
 
