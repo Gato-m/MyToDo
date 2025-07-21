@@ -1,3 +1,5 @@
+ToDo - tips:
+
 *************************** 
 https://www.youtube.com/watch?v=jdfNnNccDt0
 Till 40:23
@@ -716,8 +718,8 @@ export default EmptyState;
 
 *************************** 
 https://www.youtube.com/watch?v=jdfNnNccDt0
-From 2:01:20 ........
-Edit and Delete todos functionality
+From 2:01:20 - 2:05:13
+Delete todos functionality
 ****************************
 
 1. Delete todos. 
@@ -745,9 +747,15 @@ Edit and Delete todos functionality
         ]);
     };
 
-2. Edit todo. Attiecīgā todo wrapperī funkcija handleEditTodo mainīsi interfeisa daļu - parādīsies editējams inputs un divas pogas - save (atceļ iepriekšējo stāvokli) un cancel (atceļ darbību). Tātad vajadzīgi divi stāvokļi - viens todo rediģēšanas id un otrs - rediģējamā todo teksts. lai atjaunotu tikai to, kas nepieciešams nepieciešams izmantot redigēšanas id.
+*************************** 
+https://www.youtube.com/watch?v=jdfNnNccDt0
+From 2:05:13 - 2:14:01
+Edit todos functionality
+****************************
 
-3. Tagad varam dzēst ieprikš lietoto toggleTodo metodi un izmantot useState hooku.
+1. Edit todo. Attiecīgā todo wrapperī funkcija handleEditTodo mainīsi interfeisa daļu - parādīsies editējams inputs un divas pogas - save (atceļ iepriekšējo stāvokli) un cancel (atceļ darbību). Tātad vajadzīgi divi stāvokļi - viens todo rediģēšanas id un otrs - rediģējamā todo teksts. lai atjaunotu tikai to, kas nepieciešams nepieciešams izmantot redigēšanas id.
+
+2. Tagad varam dzēst ieprikš lietoto toggleTodo metodi un izmantot useState hooku.
 
 const updateTodo = useMutation(api.todo.updateTodo);
 
@@ -756,14 +764,14 @@ const [editText, setEditText] = useState<string>("");
 
 // tagad funkcijas: handleEditTodo atrod labojamā todo id un tekstu, const handleSaveEdit - ļauj labot todo, const handleCancelEdit - atceļ rediģēšanu :
 
- const handleEditTodo = (todo: Todo) => {
+   const handleEditTodo = (todo: Todo) => {
         setEditingId(todo._id)
         setEditText(todo.text)
     }
     const handleSaveEdit = async () => {
         if (editingId) {
             try {
-                await updateTodo({ id: editingId, text: editText.trim })
+                await updateTodo({ id: editingId, text: editText.trim ()})
                 setEditingId(null)
                 setEditText("")
             } catch (error) {
@@ -777,71 +785,130 @@ const [editText, setEditText] = useState<string>("");
         }
     }
 
-4. tagad var izsaukt tikko izveidotās funkcija lietotaaja interfeisā, bet mums nav šī stāvokļa. Tāpēc atrodam katra todo wrappera teksta konteineru ( kurā gatavojamies veikt izmaiņas )
+3. tagad var izsaukt tikko izveidotās funkcija lietotaaja interfeisā, bet mums nav šī stāvokļa. Tāpēc atrodam katra todo wrappera text container ( kurā gatavojamies veikt izmaiņas )
 
-                    <View style={homeStyles.todoTextContainer}>
-                        <Text
-                            style={[homeStyles.todoText,
-                            item.isCompleted && {
-                                textDecorationLine: "line-through",
-                                color: colors.textMuted,
-                                opacity: 0.6,
-                            },]} >
-                            {item.text}</Text>
-                    </View>
+/////////// Vispirms pielabojam renderTodoItem funkciju un nosakām kad tiks pārrenderēts ToDo:
 
-Tā vietā ievietojam: 
-
-{isEditing ? () : (
-                    <View style={homeStyles.todoTextContainer}>
-                        <Text
-                            style={[homeStyles.todoText,
-                            item.isCompleted && {
-                                textDecorationLine: "line-through",
-                                color: colors.textMuted,
-                                opacity: 0.6,
-                            },]} >
-                            {item.text}</Text>
-                    </View>
-)}
-
-// isEditing funkcija mums nav pieejama. Tā bus pieejama pie nosacījuma, ja isEditing = editingId === item._id
-
-5. ievietojam to pie todoItem renderinga:
-
-    const renderTodoItem = ({ item }: { item: Todo }) => {
+ const renderTodoItem = ({ item }: { item: Todo }) => {
         const isEditing = editingId === item._id
-        return ( .....
+        return (.........
 
-6. Tagad vēl 30 koda rindiņas pie isEditing....
+///////////  Bija: 
 
-- vispirms tukšh konteiners (kurā notiks redigēšana)
+<View style={homeStyles.todoTextContainer}>
+                        <Text
+                            style={[homeStyles.todoText,
+                            item.isCompleted && {
+                                textDecorationLine: "line-through",
+                                color: colors.textMuted,
+                                opacity: 0.6,
+                            },]} >
+                            {item.text}</Text>
 
-    <View style={homeStyles.todoTextContainer}>
-    </View>
+                        <View style={homeStyles.todoActions}>
+                            <TouchableOpacity onPress={() => handleEditTodo(item)} activeOpacity={0.8}>
+                                <LinearGradient colors={colors.gradients.warning} style={homeStyles.actionButton}>
+                                    <Ionicons name="pencil" size={14} color="#fff" />
+                                </LinearGradient>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => handleDeleteTodo(item._id)} activeOpacity={0.8}>
+                                <LinearGradient colors={colors.gradients.danger} style={homeStyles.actionButton}>
+                                    <Ionicons name="trash" size={14} color="#fff" />
+                                </LinearGradient>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+					
+					
+/////////// sākam interfeisa izmaiņas:
 
-- tad tajā ievietojam teksta rediģēsanas lauku:
+editējamā todo containera textInput:
 
-    <View style={homeStyles.todoTextContainer}>
-    <TextInput 
-        style={homeStyles.todoInput}
-        value={editText} 
-        onChangeText={setEditText} 
-        autoFocus
-        multiline
-        placeholder="Edit todo ..."
-        placeholderTextColor={colors.textMuted}
-        onSubmitEditing={handleSaveEdit}
-    />
-    </View>
+ isEditing ? (
+                    <View style={homeStyles.editContainer}>
+                        <TextInput
+                            value={editText}
+                            onChangeText={setEditText}
+                            style={homeStyles.editInput}
+                            autoFocus
+                            multiline
+                            placeholder="Edit todo"
+                            placeholderTextColor={colors.textMuted}
+                        />
+                    </View>
+                    ) : (
+                    <View style={homeStyles.todoTextContainer}>...
 
-- tad jāpievieno editēšanas funkcija handleEditTodo editēšanas pogai, lai to nospieot nomainitos interfeiss todo wraperī un útu redigēšanas iespēja:
+///////////  nospiežot redigēšanaspogu nekas nenotiek jo nav nodefinēta pogas funkcijas . pievienojam pogai funkciju handleEditTodo:
 
 <TouchableOpacity onPress={() => handleEditTodo(item)} activeOpacity={0.8}>
-                            <LinearGradient colors={colors.gradients.warning} style={homeStyles.actionButton}>
-                                <Ionicons name="pencil" size={14} color="#fff" />
-                            </LinearGradient>
-                        </TouchableOpacity>
+					
+.....
+					
+///////////   Pēc jaunā - edit stāvokļa ievietošanas pilns abu todo containeru kods (ar nosacījumu isediting):
 
 
-2:12:05
+                    {isEditing ? (
+                        <View style={homeStyles.editContainer}>
+                            <TextInput
+                                value={editText}
+                                onChangeText={setEditText}
+                                style={homeStyles.editInput}
+                                autoFocus
+                                multiline
+                                placeholder="Edit todo"
+                                placeholderTextColor={colors.textMuted}
+                            />
+
+                            <View style={homeStyles.editButtons}>
+                                <TouchableOpacity onPress={handleSaveEdit} activeOpacity={0.8}>
+                                    <LinearGradient colors={colors.gradients.success} style={homeStyles.editButton}>
+                                        <Ionicons name="checkmark" size={16} color="#fff" />
+                                        <Text style={homeStyles.editButtonText}>Save</Text>
+                                    </LinearGradient>
+                                </TouchableOpacity>
+
+                                <TouchableOpacity onPress={handleCancelEdit} activeOpacity={0.8}>
+                                    <LinearGradient colors={colors.gradients.danger} style={homeStyles.editButton}>
+                                        <Ionicons name="close" size={16} color="#fff" />
+                                        <Text style={homeStyles.editButtonText}>Cancel</Text>
+                                    </LinearGradient>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+
+                    ) : (
+                        <View style={homeStyles.todoTextContainer}>
+                            <Text
+                                style={[homeStyles.todoText,
+                                item.isCompleted && {
+                                    textDecorationLine: "line-through",
+                                    color: colors.textMuted,
+                                    opacity: 0.6,
+                                },]} >
+                                {item.text}</Text>
+
+                            <View style={homeStyles.todoActions}>
+                                <TouchableOpacity onPress={() => handleEditTodo(item)} activeOpacity={0.8}>
+                                    <LinearGradient colors={colors.gradients.warning} style={homeStyles.actionButton}>
+                                        <Ionicons name="pencil" size={14} color="#fff" />
+                                    </LinearGradient>
+                                </TouchableOpacity>
+                                <TouchableOpacity onPress={() => handleDeleteTodo(item._id)} activeOpacity={0.8}>
+                                    <LinearGradient colors={colors.gradients.danger} style={homeStyles.actionButton}>
+                                        <Ionicons name="trash" size={14} color="#fff" />
+                                    </LinearGradient>
+                                </TouchableOpacity>
+                            </View>
+                        </View>
+                    )
+                    }
+
+                 
+//////// nav iisti tīrs un moderns kods, to var sadaliit komponentos vai izveidot savus hookus... taadeejādi uzlabojot.
+
+*************************** 
+https://www.youtube.com/watch?v=jdfNnNccDt0
+From 2:14:15
+Setup screen 
+****************************
