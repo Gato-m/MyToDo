@@ -10,7 +10,7 @@ import { SafeAreaView, ScrollView, Text, View } from 'react-native'
 const SettingsScreen = () => {
 
 
-    const { colors, isDarkMode, toggleDarkMode } = useTheme()
+    const { colors } = useTheme()
 
     const settingsStyles = createSettingsStyles(colors)
 
